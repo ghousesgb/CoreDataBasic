@@ -43,6 +43,7 @@ class ViewController: UIViewController {
             let employee = Employee(context: PersistanceService.context)
             employee.name = eName
             employee.age = Int16(eAge)
+            PersistanceService.saveContext()
             self.employeeList.append(employee)
             self.tableView.reloadData()
         }
