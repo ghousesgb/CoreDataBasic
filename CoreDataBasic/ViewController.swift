@@ -65,3 +65,54 @@ extension ViewController: UITableViewDataSource {
     }
 }
 
+extension ViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let employee = employeeList[indexPath.row]
+        let alert = UIAlertController(title: "Edit Employee", message: nil, preferredStyle: .alert)
+        alert.addTextField { (textfield) in
+            textfield.text = employee.name
+        }
+        alert.addTextField { (textfield) in
+            textfield.text = String(employee.age)
+        }
+        let actionButton = UIAlertAction(title: "Update", style: .default) {[unowned self] (_) in
+            var eName = ""
+            var eAge:Int16  = 0
+            if let name = alert.textFields?.first?.text {
+                eName = name
+            }
+            if let age = alert.textFields?.last?.text {
+                eAge = Int16(age)!
+            }
+            let employee = Employee(context: PersistanceService.context)
+            employee.name = eName
+            employee.age = Int16(eAge)
+            self.employeeList[indexPath.row] = employee
+            do {
+                try PersistanceService.context.save()
+                print("saved!")
+            } catch let error as NSError  {
+                print("Could not save \(error), \(error.userInfo)")
+            } catch {
+                
+            }
+            
+            self.tableView.reloadData()
+        }
+        alert.addAction(actionButton)
+        present(alert, animated: true, completion: nil)
+    }
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            let employee = employeeList[indexPath.row]
+            PersistanceService.context.delete(employee)
+            PersistanceService.saveContext()
+            employeeList.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+        }
+    }
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+}
+
